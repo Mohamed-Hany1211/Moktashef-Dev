@@ -1,6 +1,7 @@
 // modules imports
 import mongoose from "mongoose";
-
+// files imports
+import { systemRoles } from "../../src/utils/system-roles.js";
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -55,6 +56,11 @@ const userSchema = new mongoose.Schema({
     mediaFolderId:{
         type:String,
         default:null
+    },
+    role:{
+        type: String,
+        enum:[systemRoles.USER],
+        default:systemRoles.USER
     }
 }, { timestamps: true });
 
