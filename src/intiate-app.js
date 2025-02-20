@@ -11,6 +11,7 @@ export const intiateApp = (app,express) =>{
     const port = process.env.PORT;
     app.use(express.json());
     app.use('/user',routers.UserRouter);
+    app.use('/vulns',routers.VulnsRouter);
     app.use(globalResponses,rollbackUploadedFiles,rollbackSavedDocuments);
     app.use(cors());
     db_connection();
