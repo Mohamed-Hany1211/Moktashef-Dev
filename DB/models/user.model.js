@@ -3,22 +3,11 @@ import mongoose from "mongoose";
 // files imports
 import { systemRoles } from "../../src/utils/system-roles.js";
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        minlength: 3,
-        trim: true,
-        required:true
-    },
-    lastName: {
-        type: String,
-        minlength: 3,
-        trim: true,
-        required:true
-    },
     userName: {
         type: String,
         minlength: 3,
-        trim: true
+        trim: true,
+        unique: true
     },
     email: {
         type: String,

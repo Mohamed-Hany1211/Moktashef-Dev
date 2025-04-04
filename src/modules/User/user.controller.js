@@ -11,25 +11,23 @@ import cloudinaryConnection from '../../utils/cloudinary.js';
 /*
     1 - destructing the required data from the body
     2 - check if the user is already exist in DB
-    3 - creating the userName
-    4 - creating user's token for email confirmation
-    5 - sending confirmation email to the user
-    6 - hashing the password
-    7 - creating user media folder id
-    8 - create the user image object
-    9 - check if the user uploaded an imgae
-        9.1 - upload user image on cloudinary
-        9.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
-    10 - creating new user object
-    11 - saving the user in DB
-    12 - rollback the saved document in case of any error after user creation
-    13 - return the response
+    3 - creating user's token for email confirmation
+    4 - sending confirmation email to the user
+    5 - hashing the password
+    6 - creating user media folder id
+    7 - create the user image object
+    8 - check if the user uploaded an imgae
+        8.1 - upload user image on cloudinary
+        8.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
+    9 - creating new user object
+    10 - saving the user in DB
+    11 - rollback the saved document in case of any error after user creation
+    12 - return the response
 */
 export const signUp = async (req, res, next) => {
     // 1 - destructing the required data from the body
     const {
-        firstName,
-        lastName,
+        userName,
         email,
         password,
         phoneNumber,
@@ -39,15 +37,14 @@ export const signUp = async (req, res, next) => {
     const isUserExist = await User.findOne({
         $or: [
             { email },
-            { phoneNumber }
+            { phoneNumber },
+            {userName}
         ]
     })
     if (isUserExist) return next(new Error('User already exist', { cause: 409 }));
-    // 3 - creating the userName
-    const userName = firstName + ' ' + lastName;
-    // 4 - creating user's token for email confirmation
+    // 3 - creating user's token for email confirmation
     const userToken = jwt.sign({ email }, process.env.JWT_SECRET_VEREFICATION, { expiresIn: '5m' });
-    // 5 - sending confirmation email to the user
+    // 4 - sending confirmation email to the user
     const isEmailSent = await sendEmailService({
         to: email,
         subject: 'Email Verification',
@@ -59,37 +56,35 @@ export const signUp = async (req, res, next) => {
     </section>`
     });
     if (!isEmailSent) return next(new Error('Failed to send verification email', { cause: 500 }));
-    // 6 - hashing the password
+    // 5 - hashing the password
     const hashedPassword = bcrypt.hashSync(password, +process.env.SALT_ROUNDS);
-    // 7 - creating user media folder id
+    // 6 - creating user media folder id
     const UserfolderId = generateUniqueString(13);
-    // 8 - create the user image object
+    // 7 - create the user image object
     let userImg = {
         secure_url: '',
         public_id: ''
     }
-    // 9 - check if the user uploaded an imgae
+    // 8 - check if the user uploaded an imgae
     if (!req.file) {
         userImg = {
             secure_url: '',
             public_id: ''
         }
     } else {
-        // 9.1 - upload user image on cloudinary
+        // 8.1 - upload user image on cloudinary
         const { secure_url, public_id } = await cloudinaryConnection().uploader.upload(req.file.path, {
             folder: `${process.env.MAIN_MEDIA_FOLDER}/USERS/${UserfolderId}/user_picture`
         })
-        //  9.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
+        //  8.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
         req.folder = `${process.env.MAIN_MEDIA_FOLDER}/USERS/${UserfolderId}/user_picture`;
         userImg = {
             secure_url,
             public_id
         }
     }
-    // 10 - creating new user object
+    // 9 - creating new user object
     const userData = {
-        firstName,
-        lastName,
         userName,
         email,
         password: hashedPassword,
@@ -98,12 +93,12 @@ export const signUp = async (req, res, next) => {
         mediaFolderId: UserfolderId,
         role
     };
-    // 11 - saving the user in DB
+    // 10 - saving the user in DB
     const newUser = await User.create(userData);
-    // 12 - rollback the saved document in case of any error after user creation
+    // 11 - rollback the saved document in case of any error after user creation
     req.savedDocument = { model: User, _id: newUser._id };
     if (!newUser) return next({ message: 'User Creation Faild', cause: 500 });
-    // 13 - return the response
+    // 12 - return the response
     res.status(201).json({
         success: true,
         message: 'User created successfully , please check your email to verify your account',
