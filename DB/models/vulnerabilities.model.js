@@ -1,30 +1,38 @@
 // modules imports
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
 const vulnsSchema = new mongoose.Schema({
-    vulnType:{
-        type:String,
-        required:true,
-        trim:true,
-        lowercase: true
+    requestUserId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    description:{
-        type:String,
-        required:true,
-        trim:true
-    },
-    riskLevel:{
-        type:Number,
-        required:true,
-        min:0,
-        max:10
-    },
-    remediation:{
-        type:String,
-        required:true,
-        trim:true
-    },
-    learnMore:String
+    vulnerabilities:[{
+        vulnType:{
+            type:String,
+            required:true,
+            trim:true,
+            lowercase: true
+        },
+        description:{
+            type:String,
+            required:true,
+            trim:true
+        },
+        riskLevel:{
+            type:Number,
+            required:true,
+            min:0,
+            max:10
+        },
+        remediation:{
+            type:String,
+            required:true,
+            trim:true
+        },
+        learnMore:String
+    }]
+    
 },{timestamps:true});
 
 

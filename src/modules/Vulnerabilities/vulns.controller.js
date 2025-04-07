@@ -12,24 +12,13 @@ import { ApiFeatures } from '../../utils/api-features.js';
 export const addVuln = async (req, res, next) => {
     // 1 - destructing the required data from the body
     const {
-        vulnType,
-        riskLevel,
-        description,
-        remediation,
-        learnMore
+        requestUserId,
+        vulnerabilities
     } = req.body;
-
-    // 2 - reskLevel check
-    if (riskLevel < 0 || riskLevel > 10) {
-        return next({ message: 'Risk level should be between 0 and 10', status: 400 });
-    }
     // 3 - creating the new vulnerability object
     const vulnObject = {
-        vulnType,
-        riskLevel,
-        description,
-        remediation,
-        learnMore
+        requestUserId,
+        vulnerabilities
     }
     // 4 - creating the new vulnerability document
     const newVuln = await Vulns.create(vulnObject);
@@ -70,5 +59,23 @@ export const getAllVulns = async (req, res, next) => {
         success: true,
         message: 'vulnerabilities fetched successfully',
         data: vulnerabilities
+    })
+}
+
+
+// -------------------------------------- get all vulnerabilities with users (Dummy) api -------------------------------------------- //
+/*
+
+*/
+export const getAllVulnsWithUsersDummy = async (req, res, next) => {
+    const {TargetUrl} = req.body;
+    const vulnsDocument = await Vulns.find();
+    if(!vulnsDocument){
+        return next({message: 'an error occour while fetching the vulnerabilities', cause: 500});
+    }
+    return res.status(200).json({
+        success: true,
+        message: 'vulnerabilities fetched successfully',
+        data:vulnsDocument[0].vulnerabilities 
     })
 }

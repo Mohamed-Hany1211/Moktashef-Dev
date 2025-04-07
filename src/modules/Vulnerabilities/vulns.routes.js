@@ -8,6 +8,7 @@ const router = Router();
 router.post('/addVuln',vulnsController.addVuln);
 
 router.get('/getVuln',vulnsController.getAllVulns);
+router.post('/getAllVulnsWithUsersDummy',vulnsController.getAllVulnsWithUsersDummy);
 
 
 

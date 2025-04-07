@@ -30,15 +30,12 @@ export const signUp = async (req, res, next) => {
         userName,
         email,
         password,
-        phoneNumber,
-        role
     } = req.body;
     // 2 - check if the user is already exist in DB
     const isUserExist = await User.findOne({
         $or: [
             { email },
-            { phoneNumber },
-            {userName}
+            { userName }
         ]
     })
     if (isUserExist) return next(new Error('User already exist', { cause: 409 }));
@@ -88,10 +85,8 @@ export const signUp = async (req, res, next) => {
         userName,
         email,
         password: hashedPassword,
-        phoneNumber,
         userImg,
         mediaFolderId: UserfolderId,
-        role
     };
     // 10 - saving the user in DB
     const newUser = await User.create(userData);
@@ -129,8 +124,7 @@ export const verifyEmail = async (req, res, next) => {
     // 5 - return the response
     return res.status(200).json({
         success: true,
-        message: 'email verified successfully',
-        data: findUser
+        message: 'email verified successfully'
     });
 }
 
@@ -230,35 +224,27 @@ export const deleteAccount = async (req, res, next) => {
     3 - get the user's account
     4 - check if the user's account exist
     5 - check on the data given
-        5.1 - check if the user wants to change hes first name
-        5.2 - check if the user wants to change hes last name
-        5.3 - update the user name after any change 
-        5.4 - check if the user wants to change his email also check if the new email is diffrent from the old one
-                5.4.1 - change the old email with the new one
-                5.4.2 - change the verfication flag because it is a new email 
-                5.4.3 - send verification email
-                5.4.4 - creating user's token for email confirmation
-                5.4.5 - sending confirmation email to the user
-                5.4.6 - check if the verfication email sent or not
-                5.4.7 - if the new email is the same of the old one we return error message
-        5.5 - check if the user wants to change his phone number also check if the new phone number is diffrent from the old one
-                5.5.1 - update the phone number 
-                5.5.2 - if the new phoneNumber is the same of the old one we return error message
-        5.6 - check if the user wants to change his img
-                5.6.1 - we delete the old img from cloudinary
-                5.6.2 - we update the value of the old img
-                5.6.3 - store the folder for rollback
-        5.6.4 - update the image object
+    5.1 - update the user name after any change
+    5.2 - check if the user wants to change his email also check if the new email is diffrent from the old one
+        5.2.1 - change the old email with the new one
+        5.2.2 - change the verfication flag because it is a new email 
+        5.2.3 - creating user's token for email confirmation
+        5.2.4 - sending confirmation email to the user
+        5.2.5 - check if the verfication email sent or not
+        5.2.6 - if the new email is the same of the old one we return error message
+    5.3 - check if the user wants to change his img
+        5.3.1 - we delete the old img from cloudinary
+        5.3.2 - we update the value of the old img
+        5.3.3 - store the folder for rollback
+        5.3.4 - update the image object
     6 - save the updated user account
     7 - return the response with updated user profile
 */
 export const updateUserProfile = async (req, res, next) => {
     // 1 - destructing the user's data from the body
     const {
-        firstName,
-        lastName,
+        userName,
         email,
-        phoneNumber,
         oldPublicId
     } = req.body;
     // 2 - destructing the user id of the loggedIn user(account owner)
@@ -268,22 +254,22 @@ export const updateUserProfile = async (req, res, next) => {
     // 4 - check if the user's account exist
     if (!userAccount) return next({ message: 'Account not found', cause: 404 });
     // 5 - check on the data given
-    // 5.1 - check if the user wants to change hes first name
-    if (firstName) userAccount.firstName = firstName;
-    // 5.2 - check if the user wants to change hes last name
-    if (lastName) userAccount.lastName = lastName;
-    // 5.3 - update the user name after any change 
-    userAccount.userName = userAccount.firstName + ' ' + userAccount.lastName;
-    // 5.4 - check if the user wants to change his email also check if the new email is diffrent from the old one
+    // 5.1 - update the user name after any change
+    if (userName && userName !== userAccount.userName) {
+        userAccount.userName = userName;
+    } else if (userName && userName == userAccount.userName) {
+        return next({ message: 'user name is already exist , enter diffrent user name', cause: 409 });
+    }
+
+    // 5.2 - check if the user wants to change his email also check if the new email is diffrent from the old one
     if (email && email !== userAccount.email) {
-        // 5.4.1 - change the old email with the new one
+        // 5.2.1 - change the old email with the new one
         userAccount.email = email;
-        // 5.4.2 - change the verfication flag because it is a new email 
+        // 5.2.2 - change the verfication flag because it is a new email 
         userAccount.isEmailVerified = false;
-        // 5.4.3 - send verification email
-        // 5.4.4 - creating user's token for email confirmation
+        // 5.2.3 - creating user's token for email confirmation
         const userToken = jwt.sign({ email }, process.env.JWT_SECRET_VEREFICATION, { expiresIn: '5m' });
-        // 5.4.5 - sending confirmation email to the user
+        // 5.2.4 - sending confirmation email to the user
         const isEmailSent = await sendEmailService({
             to: email,
             subject: 'Email Verification',
@@ -294,31 +280,23 @@ export const updateUserProfile = async (req, res, next) => {
         </div>
     </section>`
         });
-        // 5.4.6 - check if the verfication email sent or not
+        // 5.2.5 - check if the verfication email sent or not
         if (!isEmailSent) return next(new Error('Failed to send verification email', { cause: 500 }));
     } else if (email && email == userAccount.email) {
-        // 5.4.7 - if the new email is the same of the old one we return error message
+        // 5.2.6 - if the new email is the same of the old one we return error message
         return next({ message: 'Email is already exist , enter diffrent email', cause: 409 });
     }
-    // 5.5 - check if the user wants to change his phone number also check if the new phone number is diffrent from the old one
-    if (phoneNumber && phoneNumber !== userAccount.phoneNumber) {
-        // 5.5.1 - update the phone number 
-        userAccount.phoneNumber = phoneNumber;
-    } else if (phoneNumber && phoneNumber == userAccount.phoneNumber) {
-        // 5.5.2 - if the new phoneNumber is the same of the old one we return error message
-        return next({ message: 'phoneNumber is already exist , enter diffrent phoneNumber', cause: 409 });
-    }
-    // 5.6 - check if the user wants to change his img
+    // 5.3 - check if the user wants to change his img
     if (oldPublicId) {
-        // 5.6.1 - we delete the old img from cloudinary
+        // 5.3.1 - we delete the old img from cloudinary
         await cloudinaryConnection().uploader.destroy(oldPublicId);
-        // 5.6.2 - we update the value of the old img
+        // 5.3.2 - we update the value of the old img
         const { secure_url, public_id } = await cloudinaryConnection().uploader.upload(req.file.path, {
             folder: `${process.env.MAIN_MEDIA_FOLDER}/USERS/${userAccount.mediaFolderId}/user_picture`
         });
-        // 5.6.3 - store the folder for rollback
+        // 5.3.3 - store the folder for rollback
         req.folder = `${process.env.MAIN_MEDIA_FOLDER}/USERS/${userAccount.mediaFolderId}/user_picture`;
-        // 5.6.4 - update the image object
+        // 5.3.4 - update the image object
         userAccount.userImg = {
             secure_url,
             public_id

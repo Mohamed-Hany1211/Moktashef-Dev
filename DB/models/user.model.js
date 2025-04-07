@@ -21,11 +21,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 8
     },
-    phoneNumber: {
-        type: String,
-        required: true,
-        unique:true
-    },
     isEmailVerified: {
         type: Boolean,
         default: false

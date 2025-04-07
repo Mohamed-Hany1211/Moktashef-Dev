@@ -10,6 +10,7 @@ export const intiateApp = (app,express) =>{
     app.use(express.json());
     app.use('/user',routers.UserRouter);
     app.use('/vulns',routers.VulnsRouter);
+    app.use('/integration',routers.IntegrationRouter);
     app.use(globalResponses,rollbackUploadedFiles,rollbackSavedDocuments);
     db_connection();
     app.listen(port,()=>{console.log(`the server is running on port ${port}`);
