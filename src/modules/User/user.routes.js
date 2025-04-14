@@ -8,7 +8,7 @@ import {allowedExtensions} from '../../utils/Allowed-extensions.js';
 import {multerMiddleWareHost} from '../../middlewares/multer.middleware.js';
 import { systemRoles } from "../../utils/system-roles.js";
 const router = Router();
-router.post('/signUp',multerMiddleWareHost({extinsions:allowedExtensions.image}).single('img'),expressAsyncHandler(UserController.signUp));
+router.post('/signUp',expressAsyncHandler(UserController.signUp));
 router.get('/verify-email',expressAsyncHandler(UserController.verifyEmail));
 router.post('/signIn',expressAsyncHandler(UserController.signIn));
 router.get('/getProfile',auth([systemRoles.USER]),expressAsyncHandler(UserController.getProfile));
@@ -17,4 +17,6 @@ router.put('/updateUserProfile',auth([systemRoles.USER]),multerMiddleWareHost({e
 router.patch('/updatePassword',auth([systemRoles.USER]),expressAsyncHandler(UserController.updatePassword));
 router.patch('/forgetPassword',expressAsyncHandler(UserController.forgetPassword));
 router.patch('/resetPassword',expressAsyncHandler(UserController.resetPassword));
+router.post('/uploadImg',auth([systemRoles.USER]),multerMiddleWareHost({extinsions:allowedExtensions.image}).single('img'),expressAsyncHandler(UserController.uploadImg));
 export default router;
+

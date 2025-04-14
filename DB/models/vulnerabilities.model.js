@@ -1,5 +1,5 @@
 // modules imports
-import mongoose, { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 
 const vulnsSchema = new mongoose.Schema({
     requestUserId:{
@@ -8,29 +8,28 @@ const vulnsSchema = new mongoose.Schema({
         required: true
     },
     vulnerabilities:[{
-        vulnType:{
+        description:{
             type:String,
             required:true,
             trim:true,
             lowercase: true
-        },
-        description:{
-            type:String,
-            required:true,
-            trim:true
-        },
-        riskLevel:{
-            type:Number,
-            required:true,
-            min:0,
-            max:10
         },
         remediation:{
             type:String,
             required:true,
             trim:true
         },
-        learnMore:String
+        category:{
+            type:String,
+            required:true,
+            trim:true
+        },
+        severity:{
+            type:String,
+            required:true,
+            trim:true
+        },
+        learn_more_url:String
     }]
     
 },{timestamps:true});

@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         minlength: 3,
         trim: true,
-        unique: true
+        unique: true,
+        required:true
     },
     email: {
         type: String,
@@ -29,9 +30,13 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isAccountDeleted:{
+        type: Boolean,
+        default: false
+    },
     userImg: {
         secure_url: { type: String},
-        public_id: { type: String, unique: true }
+        public_id: { type: String, unique: true },
     },
     ResetPasswordOTP:{
         type:String,

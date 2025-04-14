@@ -63,19 +63,19 @@ export const getAllVulns = async (req, res, next) => {
 }
 
 
-// -------------------------------------- get all vulnerabilities with users (Dummy) api -------------------------------------------- //
+// -------------------------------------- get scan history for specific user -------------------------------------------- //
 /*
 
 */
-export const getAllVulnsWithUsersDummy = async (req, res, next) => {
-    const {TargetUrl} = req.body;
-    const vulnsDocument = await Vulns.find();
-    if(!vulnsDocument){
+export const getScanHistoryForSpecificUser = async (req, res, next) => {
+    const {_id} = req.authUser;
+    const userScanHistory = await Vulns.find({requestUserId:_id});
+    if(!userScanHistory){
         return next({message: 'an error occour while fetching the vulnerabilities', cause: 500});
     }
     return res.status(200).json({
         success: true,
-        message: 'vulnerabilities fetched successfully',
-        data:vulnsDocument[0].vulnerabilities 
+        message: 'the scan history fetched successfully',
+        data:userScanHistory
     })
 }

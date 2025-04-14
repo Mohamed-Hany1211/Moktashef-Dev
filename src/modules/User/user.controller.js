@@ -14,15 +14,10 @@ import cloudinaryConnection from '../../utils/cloudinary.js';
     3 - creating user's token for email confirmation
     4 - sending confirmation email to the user
     5 - hashing the password
-    6 - creating user media folder id
-    7 - create the user image object
-    8 - check if the user uploaded an imgae
-        8.1 - upload user image on cloudinary
-        8.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
-    9 - creating new user object
-    10 - saving the user in DB
-    11 - rollback the saved document in case of any error after user creation
-    12 - return the response
+    6 - creating new user object
+    7 - saving the user in DB
+    8 - rollback the saved document in case of any error after user creation
+    9 - return the response
 */
 export const signUp = async (req, res, next) => {
     // 1 - destructing the required data from the body
@@ -55,46 +50,19 @@ export const signUp = async (req, res, next) => {
     if (!isEmailSent) return next(new Error('Failed to send verification email', { cause: 500 }));
     // 5 - hashing the password
     const hashedPassword = bcrypt.hashSync(password, +process.env.SALT_ROUNDS);
-    // 6 - creating user media folder id
-    const UserfolderId = generateUniqueString(13);
-    // 7 - create the user image object
-    let userImg = {
-        secure_url: '',
-        public_id: ''
-    }
-    // 8 - check if the user uploaded an imgae
-    if (!req.file) {
-        userImg = {
-            secure_url: '',
-            public_id: ''
-        }
-    } else {
-        // 8.1 - upload user image on cloudinary
-        const { secure_url, public_id } = await cloudinaryConnection().uploader.upload(req.file.path, {
-            folder: `${process.env.MAIN_MEDIA_FOLDER}/USERS/${UserfolderId}/user_picture`
-        })
-        //  8.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
-        req.folder = `${process.env.MAIN_MEDIA_FOLDER}/USERS/${UserfolderId}/user_picture`;
-        userImg = {
-            secure_url,
-            public_id
-        }
-    }
-    // 9 - creating new user object
+    // 6 - creating new user object
     const userData = {
         userName,
         email,
         password: hashedPassword,
-        userImg,
-        mediaFolderId: UserfolderId,
     };
-    // 10 - saving the user in DB
+    // 7 - saving the user in DB
     const newUser = await User.create(userData);
-    // 11 - rollback the saved document in case of any error after user creation
+    // 8 - rollback the saved document in case of any error after user creation
     req.savedDocument = { model: User, _id: newUser._id };
     if (!newUser) return next({ message: 'User Creation Faild', cause: 500 });
-    // 12 - return the response
-    res.status(201).json({
+    // 9 - return the response
+    return res.status(201).json({
         success: true,
         message: 'User created successfully , please check your email to verify your account',
         data: newUser
@@ -142,7 +110,7 @@ export const signIn = async (req, res, next) => {
     // 1 - get user data from request body
     const { email, password } = req.body;
     // 2 - check if user is exist in database using the email
-    const userFound = await User.findOne({ email, isEmailVerified: true });
+    const userFound = await User.findOne({ email, isEmailVerified: true, isAccountDeleted: false });
     if (!userFound) {
         return next(new Error(`Invalid login credentials or your account is not verified yet, please signUp or check your mail`, { cause: 404 }));
     }
@@ -201,15 +169,19 @@ export const deleteAccount = async (req, res, next) => {
     // 1 - destructing the user id of the loggedIn user(account owner)
     const { _id } = req.authUser;
     // 2 - find the user & delete user's document from DB
-    const deletedUser = await User.findByIdAndDelete(_id);
-    // 3 - check if the user's document is deleted or not
-    if (!deletedUser) {
-        return next(new Error('user not found', { cause: 404 }));
-    }
+    const deletedUser = await User.findById(_id);
+    deletedUser.isAccountDeleted = true;
+    // - save user document
+
     // 4 - delete user's media folder from cloudinary
     const { mediaFolderId } = deletedUser;
-    await cloudinaryConnection().api.delete_resources_by_prefix(`${process.env.MAIN_MEDIA_FOLDER}/USERS/${mediaFolderId}/user_picture`);
-    await cloudinaryConnection().api.delete_folder(`${process.env.MAIN_MEDIA_FOLDER}/USERS/${mediaFolderId}`);
+    if (mediaFolderId != null) {
+        await cloudinaryConnection().api.delete_resources_by_prefix(`${process.env.MAIN_MEDIA_FOLDER}/USERS/${mediaFolderId}/user_picture`);
+        await cloudinaryConnection().api.delete_folder(`${process.env.MAIN_MEDIA_FOLDER}/USERS/${mediaFolderId}`);
+    }
+    deletedUser.mediaFolderId = null;
+    deletedUser.userImg = null;
+    await deletedUser.save();
     // 5 - return the response
     return res.status(200).json({
         success: true,
@@ -424,4 +396,61 @@ export const resetPassword = async (req, res, next) => {
         success: true,
         message: 'The password was successfully reset.'
     });
+}
+
+
+// ====================================== upload profile image api =============================== //
+/*
+    1 - destructing the id of the signed in user 
+    2 - finding the user
+    3 - creating user media folder id
+    4 - create the user image object
+    5 - check if the user uploaded an imgae
+        5.1 - upload user image on cloudinary
+        5.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
+    6 - save the user
+    7 - return response
+*/
+export const uploadImg = async (req, res, next) => {
+    // 1 - destructing the id of the signed in user 
+    const { _id } = req.authUser;
+    // 2 - finding the user
+    const user = await User.findOne({ _id, isAccountDeleted: false });
+    if (!user) {
+        return next({ message: 'No account found associated with this id', cause: 404 })
+    }
+    // 3 - creating user media folder id
+    const UserfolderId = generateUniqueString(13);
+    // 4 - create the user image object
+    let userImg = {
+        secure_url: '',
+        public_id: ''
+    }
+    // 5 - check if the user uploaded an imgae
+    if (!req.file) {
+        userImg = {
+            secure_url: '',
+            public_id: ''
+        }
+    } else {
+        // 5.1 - upload user image on cloudinary
+        const { secure_url, public_id } = await cloudinaryConnection().uploader.upload(req.file.path, {
+            folder: `${process.env.MAIN_MEDIA_FOLDER}/USERS/${UserfolderId}/user_picture`
+        })
+        // 5.2 - add the folder in request object so that if any error occure while uploading the image it will not upload due to rollback 
+        req.folder = `${process.env.MAIN_MEDIA_FOLDER}/USERS/${UserfolderId}/user_picture`;
+        userImg = {
+            secure_url,
+            public_id
+        }
+    }
+    user.mediaFolderId = UserfolderId;
+    user.userImg = userImg;
+    //  6 - save the user
+    await user.save();
+    //  7 - return response
+    return res.status(200).json({
+        success: true,
+        message: 'The user image was successfully uploaded.',
+    })
 }
