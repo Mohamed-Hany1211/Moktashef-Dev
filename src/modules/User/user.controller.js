@@ -120,7 +120,7 @@ export const signIn = async (req, res, next) => {
         return next(new Error(`Incorrect password`, { cause: 401 }));
     }
     // 4 - create token
-    const userToken = jwt.sign({ email, id: userFound._id, loggedIn: true }, process.env.JWT_SECRET_LOGIN, { expiresIn: '5m' });
+    const userToken = jwt.sign({ email, id: userFound._id, loggedIn: true }, process.env.JWT_SECRET_LOGIN, { expiresIn: '30m' });
     // 5 - create flag for loggedIn User
     userFound.isloggedIn = true;
     await userFound.save();
@@ -128,7 +128,7 @@ export const signIn = async (req, res, next) => {
     return res.status(200).json({
         success: true,
         message: 'User logged in successfully',
-        data: userToken
+        token: userToken
     })
 }
 
