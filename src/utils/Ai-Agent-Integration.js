@@ -6,3 +6,6 @@ export const AiAgentIntegration = async (vulnsArray) => {
     if(!AiResponse) return null; 
     return AiResponse;
 }
+
+
+

@@ -79,3 +79,4 @@ export const getScanHistoryForSpecificUser = async (req, res, next) => {
         data:userScanHistory
     })
 }
+

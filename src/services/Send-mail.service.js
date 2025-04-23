@@ -1,5 +1,4 @@
 import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken';
 const sendEmailService = async ({
     to = '', // 'email1' or 'email1,email2,email3'
     subject = 'no-reply',
@@ -17,7 +16,7 @@ const sendEmailService = async ({
     });
 
     const info = await transporter.sendMail({
-        from: `"Google dev Team" <${process.env.EMAIL}>`, // sender address
+        from: `"Moktashif dev Team" <${process.env.EMAIL}>`, // sender address
         to, // list of receivers
         subject, // Subject line
         html : message, // html body

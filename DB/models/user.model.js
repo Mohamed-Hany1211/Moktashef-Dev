@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema({
     },
     userImg: {
         secure_url: { type: String},
-        public_id: { type: String, unique: true },
+        public_id: { type: String },
     },
     ResetPasswordOTP:{
         type:String,

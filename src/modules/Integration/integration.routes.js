@@ -7,7 +7,9 @@ const router = Router();
 
 
 
-router.post('/IntegrationApi',auth([systemRoles.USER]),integrationController.IntegrationApi);
+router.post('/IntegrationApi',
+    // auth([systemRoles.USER]),
+    integrationController.IntegrationApi);
 
 
 

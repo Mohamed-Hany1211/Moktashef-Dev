@@ -5,7 +5,7 @@ const vulnsSchema = new mongoose.Schema({
     requestUserId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        // required: true
     },
     vulnerabilities:[{
         description:{

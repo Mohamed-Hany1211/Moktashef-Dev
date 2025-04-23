@@ -127,7 +127,7 @@ export const signIn = async (req, res, next) => {
     // 6 - return the response
     return res.status(200).json({
         success: true,
-        message: 'User logged in successfully',
+        message: 'User loggedIn successfully',
         token: userToken
     })
 }
