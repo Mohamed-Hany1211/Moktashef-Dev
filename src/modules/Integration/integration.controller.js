@@ -7,7 +7,7 @@ export const IntegrationApi = async (req, res, next) => {
     // 1 - get target website url
     const {TargetUrl} = req.body;
     // 2 - destructing the user id
-    // const { _id } = req.authUser;
+    const { _id } = req.authUser;
     // 3 - first request " the first request is for security api "
     let baseURL = {
         "url": TargetUrl,
@@ -31,7 +31,7 @@ export const IntegrationApi = async (req, res, next) => {
     const Airesponse = await AiAgentIntegration(rs);
     // 6 - creating the object to be sent to DB
     const vulnsObject = {
-        // requestUserId: _id,
+        requestUserId: _id,
         vulnerabilities: Airesponse.data.vulnerabilities
     }
     // 7 - sending the object to DB and create the new document
