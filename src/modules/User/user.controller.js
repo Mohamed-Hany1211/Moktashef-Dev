@@ -197,6 +197,8 @@ export const deleteAccount = async (req, res, next) => {
     4 - check if the user's account exist
     5 - check on the data given
     5.1 - update the user name after any change
+        5.1.1 - update the user name
+        5.1.2 - return the error message
     5.2 - check if the user wants to change his email also check if the new email is diffrent from the old one
         5.2.1 - change the old email with the new one
         5.2.2 - change the verfication flag because it is a new email 
@@ -204,11 +206,6 @@ export const deleteAccount = async (req, res, next) => {
         5.2.4 - sending confirmation email to the user
         5.2.5 - check if the verfication email sent or not
         5.2.6 - if the new email is the same of the old one we return error message
-    5.3 - check if the user wants to change his img
-        5.3.1 - we delete the old img from cloudinary
-        5.3.2 - we update the value of the old img
-        5.3.3 - store the folder for rollback
-        5.3.4 - update the image object
     6 - save the updated user account
     7 - return the response with updated user profile
 */
@@ -217,7 +214,6 @@ export const updateUserProfile = async (req, res, next) => {
     const {
         userName,
         email,
-        oldPublicId
     } = req.body;
     // 2 - destructing the user id of the loggedIn user(account owner)
     const { _id } = req.authUser;
@@ -228,11 +224,12 @@ export const updateUserProfile = async (req, res, next) => {
     // 5 - check on the data given
     // 5.1 - update the user name after any change
     if (userName && userName !== userAccount.userName) {
+        // 5.1.1 - update the user name
         userAccount.userName = userName;
     } else if (userName && userName == userAccount.userName) {
+        // 5.1.2 - return the error message
         return next({ message: 'user name is already exist , enter diffrent user name', cause: 409 });
     }
-
     // 5.2 - check if the user wants to change his email also check if the new email is diffrent from the old one
     if (email && email !== userAccount.email) {
         // 5.2.1 - change the old email with the new one
@@ -257,22 +254,6 @@ export const updateUserProfile = async (req, res, next) => {
     } else if (email && email == userAccount.email) {
         // 5.2.6 - if the new email is the same of the old one we return error message
         return next({ message: 'Email is already exist , enter diffrent email', cause: 409 });
-    }
-    // 5.3 - check if the user wants to change his img
-    if (oldPublicId) {
-        // 5.3.1 - we delete the old img from cloudinary
-        await cloudinaryConnection().uploader.destroy(oldPublicId);
-        // 5.3.2 - we update the value of the old img
-        const { secure_url, public_id } = await cloudinaryConnection().uploader.upload(req.file.path, {
-            folder: `${process.env.MAIN_MEDIA_FOLDER}/USERS/${userAccount.mediaFolderId}/user_picture`
-        });
-        // 5.3.3 - store the folder for rollback
-        req.folder = `${process.env.MAIN_MEDIA_FOLDER}/USERS/${userAccount.mediaFolderId}/user_picture`;
-        // 5.3.4 - update the image object
-        userAccount.userImg = {
-            secure_url,
-            public_id
-        }
     }
     // 6 - save the updated user account
     await userAccount.save();
@@ -451,6 +432,53 @@ export const uploadImg = async (req, res, next) => {
     //  7 - return response
     return res.status(200).json({
         success: true,
-        message: 'The user image was successfully uploaded.',
+        message: 'The user image is successfully uploaded.',
+    })
+}
+
+
+// ====================================== update profile image api =============================== //
+
+/* 
+    1 - destructing the id of the signed in user 
+    2 - destructing the old public id of the user image
+    3 - finding the user
+    4 - we delete the old img from cloudinary
+    5 - we update the value of the old img
+    6 - store the folder for rollback
+    7 - update the image object
+    8 - save the user
+    9 - return response
+*/
+
+export const updateImg = async (req, res, next) => {
+    // 1 - destructing the id of the signed in user 
+    const { _id } = req.authUser;
+    // 2 - destructing the old public id of the user image
+    const { oldPublicId } = req.body;
+    // 3 - finding the user
+    const user = await User.findOne({ _id, isAccountDeleted: false });
+    if (!user) {
+        return next({ message: 'No account found associated with this id', cause: 404 })
+    }
+    // 4 - we delete the old img from cloudinary
+    await cloudinaryConnection().uploader.destroy(oldPublicId);
+    // 5 - we update the value of the old img
+    const { secure_url, public_id } = await cloudinaryConnection().uploader.upload(req.file.path, {
+        folder: `${process.env.MAIN_MEDIA_FOLDER}/USERS/${user.mediaFolderId}/user_picture`
+    });
+    // 6 - store the folder for rollback
+    req.folder = `${process.env.MAIN_MEDIA_FOLDER}/USERS/${user.mediaFolderId}/user_picture`;
+    // 7 - update the image object
+    user.userImg = {
+        secure_url,
+        public_id
+    }
+    // 8 - save the user
+    await user.save();
+    //  9 - return response
+    return res.status(200).json({
+        success: true,
+        message: 'The user image updated successfully',
     })
 }
