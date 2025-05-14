@@ -5,6 +5,7 @@ export const signUpSchema = {
         userName:Joi.string().alphanum().min(3).required(),
         email:Joi.string().email().required(),
         password:Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>/?\\|\[\]]).{8,}$/)).required(),
+        acceptTerms:Joi.boolean().required(),
     })
 }
 

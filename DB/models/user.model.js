@@ -50,6 +50,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum:[systemRoles.USER],
         default:systemRoles.USER
+    },
+    acceptTerms:{
+        type:Boolean,
+        default:false,
+        required:true
     }
 }, { timestamps: true });
 
