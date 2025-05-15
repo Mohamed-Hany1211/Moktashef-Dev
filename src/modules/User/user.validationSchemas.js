@@ -1,8 +1,8 @@
 import Joi from "joi";
-
+// ^[a-zA-Z0-9 ]{3,30}$
 export const signUpSchema = {
     body:Joi.object({
-        userName:Joi.string().alphanum().min(3).required(),
+        userName:Joi.string().pattern(new RegExp(/^[a-zA-Z0-9 ]{3,30}$/)).min(3).required(),
         email:Joi.string().email().required(),
         password:Joi.string().pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>/?\\|\[\]]).{8,}$/)).required(),
         acceptTerms:Joi.boolean().required(),
@@ -20,7 +20,7 @@ export const signInSchema = {
 
 export const UpdateUserProfileSchema = {
     body:Joi.object({
-        userName:Joi.string().alphanum().min(3),
+        userName:Joi.string().pattern(new RegExp(/^[a-zA-Z0-9 ]{3,30}$/)).min(3),
         email:Joi.string().email(),
     }),
 }
