@@ -128,8 +128,7 @@ export const signIn = async (req, res, next) => {
     return res.status(200).json({
         success: true,
         message: 'User loggedIn successfully',
-        token: userToken,
-        User:userFound
+        token: userToken
     })
 }
 
@@ -481,5 +480,43 @@ export const updateImg = async (req, res, next) => {
     return res.status(200).json({
         success: true,
         message: 'The user image updated successfully',
+    })
+}
+
+// ====================================== delete profile image api =============================== //
+
+/* 
+    1 - destructing the id of the signed in user 
+    2 - finding the user
+    3 - we delete the old img from cloudinary
+    4 - we delete the user's image folder from cloudinary
+    5 - update the user's mediaFolderId to null
+    6 - update the user's image object to null
+    7 - save the user
+    8 - return response
+*/
+
+export const deleteImg = async (req, res, next) => {
+    // 1 - destructing the id of the signed in user 
+    const { _id } = req.authUser;
+    // 2 - finding the user
+    const user = await User.findOne({ _id, isAccountDeleted: false });
+    if (!user) {
+        return next({ message: 'No account found associated with this id', cause: 404 })
+    }
+    // 3 - we delete the old img from cloudinary
+    await cloudinaryConnection().api.delete_resources_by_prefix(`${process.env.MAIN_MEDIA_FOLDER}/USERS/${user.mediaFolderId}/user_picture`);
+    // 4 - we delete the user's image folder from cloudinary
+    await cloudinaryConnection().api.delete_folder(`${process.env.MAIN_MEDIA_FOLDER}/USERS/${user.mediaFolderId}`);
+    // 5 - update the user's mediaFolderId to null
+    user.mediaFolderId = null;
+    // 6 - update the user's image object to null
+    user.userImg = null;
+    // 7 - save the user
+    await user.save();
+    // 8 - return response
+    return res.status(200).json({
+        success: true,
+        message: 'The user image deleted successfully',
     })
 }

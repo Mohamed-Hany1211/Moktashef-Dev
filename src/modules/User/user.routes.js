@@ -21,5 +21,6 @@ router.patch('/forgetPassword',validationMiddleware(forgetPasswordSchema),expres
 router.patch('/resetPassword',validationMiddleware(resetPasswordSchema),expressAsyncHandler(UserController.resetPassword));
 router.post('/uploadImg',auth([systemRoles.USER]),multerMiddleWareHost({extinsions:allowedExtensions.image}).single('img'),expressAsyncHandler(UserController.uploadImg));
 router.patch('/updateImg',auth([systemRoles.USER]),multerMiddleWareHost({extinsions:allowedExtensions.image}).single('img'),expressAsyncHandler(UserController.updateImg));
+router.delete('/deleteImg',auth([systemRoles.USER]),expressAsyncHandler(UserController.deleteImg));
 export default router;
 

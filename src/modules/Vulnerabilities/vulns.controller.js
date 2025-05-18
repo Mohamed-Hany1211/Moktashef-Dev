@@ -41,7 +41,7 @@ export const getScanHistoryForSpecificUser = async (req, res, next) => {
     // 1 - destructing the user id from the authUser
     const {_id} = req.authUser;
     // 2 - getting the user scan history from the database
-    const userScanHistory = await Vulns.find({requestUserId:_id});
+    const userScanHistory = await Vulns.find({requestUserId:_id}).sort({createdAt:-1});
     if(!userScanHistory){
         return next({message: 'an error occour while fetching the vulnerabilities', cause: 500});
     }
