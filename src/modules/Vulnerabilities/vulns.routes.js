@@ -11,6 +11,7 @@ const router = Router();
 
 router.get('/getAllVulns',expressAsyncHandler(vulnsController.getAllVulns));
 router.get('/getScanHistoryForSpecificUser',auth([systemRoles.USER]),expressAsyncHandler(vulnsController.getScanHistoryForSpecificUser));
+router.delete('/deleteSpecificScanHistory',auth([systemRoles.USER]),expressAsyncHandler(vulnsController.deleteSpecificScanHistory));
 
 
 

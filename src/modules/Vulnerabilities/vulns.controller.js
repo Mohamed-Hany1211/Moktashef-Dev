@@ -53,3 +53,27 @@ export const getScanHistoryForSpecificUser = async (req, res, next) => {
     })
 }
 
+
+
+
+// -------------------------------------- delete specific scan history -------------------------------------------- //
+/*
+    1 - destructing the scan history id from the body
+    2 - finding the scan history from the database and delete it
+    3 - return the response
+*/
+export const deleteSpecificScanHistory = async (req,res,next) => {
+    // 1 - destructing the scan history id from the body
+    const {scanHistoryId} = req.body;
+    // 2 - finding the scan history from the database and delete it
+    const deletedScanHistory = await Vulns.findByIdAndDelete(scanHistoryId);
+    if(!deletedScanHistory){
+        return next({message: 'an error occour while deleting the scan history', cause: 500});
+    }
+    // 3 - return the response
+    return res.status(200).json({
+        success: true,
+        message: 'the scan history deleted successfully'
+    })
+}
+
