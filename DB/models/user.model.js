@@ -55,7 +55,30 @@ const userSchema = new mongoose.Schema({
         type:Boolean,
         default:false,
         required:true
-    }
+    },
+    conversations: [{
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            default: () => new mongoose.Types.ObjectId()
+        },
+        title: {
+            type: String,
+            required: true
+        },
+        created_at: {
+            type: Date,
+            default: Date.now
+        },
+        updated_at: {
+            type: Date,
+            default: Date.now
+        },
+        messages: {
+            type: Array,
+            default: []
+        }
+    }]
+
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model('User', userSchema);
