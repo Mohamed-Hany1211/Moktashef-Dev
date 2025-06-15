@@ -32,7 +32,7 @@ export const IntegrationApi = async (req, res, next) => {
     // 6 - creating the object to be sent to DB
     const vulnsObject = {
         requestUserId: _id,
-        vulnerabilities: Airesponse.data.vulnerabilities
+        vulnerabilities: Airesponse.data.results
     }
     // 7 - sending the object to DB and create the new document
     const newVulnsDocument = await Vulns.create(vulnsObject);

@@ -29,7 +29,7 @@ const vulnsSchema = new mongoose.Schema({
             required:true,
             trim:true
         },
-        learn_more_url:String
+        link:String
     }]
     
 },{timestamps:true});
